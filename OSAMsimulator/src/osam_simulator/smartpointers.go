@@ -112,7 +112,7 @@ func (sp *SmartPointer) Copy(p1 *Ptr) Ptr {
 	p0 := Ptr{head: sp.addTail(nd)}
 	p1.head = sp.addTail(nd)
 	sp.saveNode(nd)
-	sp.log(fmt.Sprintf("COPY: copied pointer %v to create pointer %v", p1, p0), false)
+	sp.log(fmt.Sprintf("COPY: finished copying pointer %v to create pointer %v", p1, p0), false)
 	return p0
 }
 
@@ -121,11 +121,10 @@ func (sp *SmartPointer) New(c Block) Ptr {
 	nd := &Node{tailL: NIL, tailR: NIL, content: c, isRoot: true, headP: NIL}
 	p := Ptr{head: sp.addTail(nd)}
 	sp.saveNode(nd)
-	sp.log(fmt.Sprintf("NEW: created pointer %v to content %v", p, c.Data), false)
+	sp.log(fmt.Sprintf("NEW: finished creating pointer %v to content %v", p, c.Data), false)
 	return p
 }
 
-// TBD: need to pass p as a *Ptr? check what happens to p in the code?
 func (sp *SmartPointer) Delete(p *Ptr) {
 	if p.head != NIL {
 		nd := sp.chase(p.head)

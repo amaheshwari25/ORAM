@@ -90,7 +90,7 @@ func (osam *OSAM) dequeue(head addr) (addr, addr) {
 	if b.IsNone {
 		return NIL, NIL
 	} else {
-		bNode := b.Data.(QueueElem) // FORCE data type to be a QueueElem
+		bNode := b.Data.(QueueElem) // force data type to be a QueueElem
 		return bNode.v, bNode.link
 	}
 }

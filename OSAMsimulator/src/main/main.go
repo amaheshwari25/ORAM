@@ -7,22 +7,34 @@ import (
 
 type Block = osam.Block
 
-func main() {
-	or := osam.CreateORAM(12, true)
-	os := osam.CreateOSAM(or, true)
-	sp := osam.CreateSP(os, true)
+// ----------- toggle printing -----------
+const prORAM = true  // ORAM calls (oram_sim.go)
+const prOSAM = false // OSAM calls (osam.go)
+const prSP = false   // SmartPointer interface calls (smartpointers.go)
 
+func main() {
+	or := osam.CreateORAM(12, prORAM)
+	os := osam.CreateOSAM(or, prOSAM)
+	sp := osam.CreateSP(os, prSP)
+
+	fmt.Println("\n[main] Create pointer A to Node with data='C'")
 	A := sp.New(Block{Data: "C", IsNone: false})
+	fmt.Println("\n[main] Copy pointer A to create pointer B")
 	B := sp.Copy(&A)
+	fmt.Println("\n[main] GET on pointer A ")
 	valA := sp.Get(&A).Data
-	fmt.Printf("\n [main] GET on pointer A = %v \n", valA)
+	fmt.Printf("\n[main] GET on pointer A result = %v \n", valA)
+	fmt.Println("\n[main] PUT 'newC' via pointer A")
+	sp.Put(&A, Block{Data: "newC", IsNone: false})
+	fmt.Println("\n[main] GET on pointer B")
 	valB := sp.Get(&B).Data
-	fmt.Printf("\n [main] GET on pointer B = %v \n", valB)
+	fmt.Printf("\n[main] GET on pointer B result = %v \n", valB)
+
+	// OLD: OSAM-level program
 	// a1 := os.Alloc()
 	// fmt.Printf("[main] Read: %v \n", osam.GetData(os.Read(a1)))
 	// a2 := os.Alloc()
 	// os.Write(a2, "data_a2")
 	// d2 := os.Read(a2)
 	// fmt.Printf("[main] Read: %v \n", osam.GetData(d2))
-
 }

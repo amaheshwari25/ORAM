@@ -16,8 +16,7 @@ type Block struct {
 
 // ------------ ADDR ------------
 // Based on OSAM paper: addresses include a global unique id "ctr" and the leaf index "leaf"
-//
-//	which is printed as "ctr_leaf"
+// which is printed as "ctr_leaf"
 type addr struct {
 	ctr  int
 	leaf int

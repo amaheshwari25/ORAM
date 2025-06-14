@@ -30,13 +30,13 @@ func (oram *PathORAM) readRMAccess(a addr, callerMsg string) Block {
 	i := a.leaf
 	id := a.ctr
 	if i >= oram.nl {
-		log.Fatalf("[ORAM] ReadAndRM Access leaf index out of bounds: i=%v, n=%v", i, oram.nl)
+		log.Fatalf("[ORAM] ReadAndRM ACCESS leaf index out of bounds: i=%v, n=%v", i, oram.nl)
 	}
 	if oram.printORAM {
 		if callerMsg != "" {
-			fmt.Printf("[ORAM] ReadAndRM Access: %v, called from: %v \n", i, callerMsg)
+			fmt.Printf("[ORAM] ReadAndRM ACCESS: %v, called from: %v \n", i, callerMsg)
 		} else {
-			fmt.Printf("[ORAM] ReadAndRM Access: %v \n", i)
+			fmt.Printf("[ORAM] ReadAndRM ACCESS: %v \n", i)
 		}
 	}
 
@@ -44,18 +44,14 @@ func (oram *PathORAM) readRMAccess(a addr, callerMsg string) Block {
 		delete(oram.arr[i], id)
 		return v
 	} else {
-		fmt.Printf("[ORAM] Read NONE when reading %v \n", i)
+		fmt.Printf("[ORAM] Read yielded NONE when reading %v \n", i)
 		return Block{Data: NONE, IsNone: true}
 	}
 }
 
-//////// ORAM helpers //////////
-
-// func (oram *PathORAM) readAndRM(a addr, callerMsg string) Block {
-// 	return oram.Access(a, callerMsg)
-// }
-
-// NOTE: this is NOT the same functionality as evict in OSAM paper: bypass stash for simulation
+// NOTE: this is NOT the same functionality as [evict] in OSAM paper: we drop the stash for simulation.
+// But this does not count as a separate "Access" of the ORAM, so it is marked separately from
+// the above function.
 func (oram *PathORAM) modEvict(a addr, value interface{}) {
 	// note: this does NOT count as a new "Access" call:
 	//  in real PathORAM, would just be placed on the LCA with the read-Access path address and a
