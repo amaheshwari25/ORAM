@@ -3,16 +3,28 @@ package osam_simulator
 import "fmt"
 
 type SmartPointer struct {
-	osam *OSAM
-	// debug bool
+	osam    *OSAM
+	printSP bool
 }
 
-func CreateSP(osam *OSAM) *SmartPointer {
-	return &SmartPointer{osam}
+func CreateSP(osam *OSAM, print bool) *SmartPointer {
+	return &SmartPointer{osam, print}
 }
 
 type Ptr struct {
 	head addr
+}
+
+func (sp *SmartPointer) log(str string, newline bool) {
+	var nlStr string
+	if newline {
+		nlStr = "\n"
+	} else {
+		nlStr = ""
+	}
+	if sp.printSP {
+		fmt.Println(nlStr + "[SP] " + str)
+	}
 }
 
 // ------------ SmartPointer helper functions ------------ //
@@ -56,7 +68,7 @@ func (sp *SmartPointer) addTail(nd *Node) addr {
 }
 
 // Helper function that is the main body of Get and Put
-func (sp *SmartPointer) retrieve(p Ptr) *Node {
+func (sp *SmartPointer) retrieve(p *Ptr) *Node {
 	nd := sp.chase(p.head)
 	p.head = sp.addTail(nd)
 	for !nd.isRoot {
@@ -69,8 +81,8 @@ func (sp *SmartPointer) retrieve(p Ptr) *Node {
 }
 
 // ------------ SmartPointer: MAIN API ------------ //
-func (sp *SmartPointer) Get(p Ptr) Block {
-	fmt.Printf("GET: %v \n", p)
+func (sp *SmartPointer) Get(p *Ptr) Block {
+	sp.log(fmt.Sprintf("GET: %v", p), true)
 	nd := sp.retrieve(p)
 	// invariant: nd.isRoot should be true
 	out := nd.content
@@ -78,8 +90,8 @@ func (sp *SmartPointer) Get(p Ptr) Block {
 	return out
 }
 
-func (sp *SmartPointer) Put(p Ptr, c Block) {
-	fmt.Printf("PUT: %v, content %v \n", p, c.Data)
+func (sp *SmartPointer) Put(p *Ptr, c Block) {
+	sp.log(fmt.Sprintf("PUT: %v, content %v", p, c.Data), true)
 	nd := sp.retrieve(p)
 	nd.content = c
 	sp.saveNode(nd)
@@ -89,8 +101,8 @@ func (sp *SmartPointer) IsNull(p Ptr) bool {
 	return p.head == NIL
 }
 
-func (sp *SmartPointer) Copy(p1 Ptr) Ptr {
-	fmt.Printf("COPY: starting to copy pointer %v \n", p1)
+func (sp *SmartPointer) Copy(p1 *Ptr) Ptr {
+	sp.log(fmt.Sprintf("COPY: starting to copy pointer %v", p1), true)
 	nd := sp.chase(p1.head)
 	if nd.tailL != NIL || nd.tailR != NIL {
 		ndNew := &Node{headP: sp.addTail(nd), isRoot: false, content: Block{Data: NONE, IsNone: true}}
@@ -99,26 +111,27 @@ func (sp *SmartPointer) Copy(p1 Ptr) Ptr {
 	}
 	p0 := Ptr{head: sp.addTail(nd)}
 	p1.head = sp.addTail(nd)
-	fmt.Printf("COPY: copied pointer %v to create pointer %v \n", p1, p0)
-
+	sp.saveNode(nd)
+	sp.log(fmt.Sprintf("COPY: copied pointer %v to create pointer %v", p1, p0), false)
 	return p0
 }
 
 func (sp *SmartPointer) New(c Block) Ptr {
-	fmt.Printf("NEW: starting to create pointer to content %v \n", c.Data)
+	sp.log(fmt.Sprintf("NEW: starting to create pointer to content %v", c.Data), true)
 	nd := &Node{tailL: NIL, tailR: NIL, content: c, isRoot: true, headP: NIL}
 	p := Ptr{head: sp.addTail(nd)}
 	sp.saveNode(nd)
-	fmt.Printf("NEW: created pointer %v to content %v \n", p, c.Data)
+	sp.log(fmt.Sprintf("NEW: created pointer %v to content %v", p, c.Data), false)
 	return p
 }
 
-func (sp *SmartPointer) Delete(p Ptr) {
+// TBD: need to pass p as a *Ptr? check what happens to p in the code?
+func (sp *SmartPointer) Delete(p *Ptr) {
 	if p.head != NIL {
 		nd := sp.chase(p.head)
 		if nd.isRoot {
 			if nd.tailL == NIL && nd.tailR == NIL { // note: chase will have recently nulled-out one
-				fmt.Printf("All pointers to %v deleted; should delete its content", nd)
+				sp.log(fmt.Sprintf("All pointers to %v deleted; should delete its content", nd), false)
 			} else {
 				sp.saveNode(nd)
 			}

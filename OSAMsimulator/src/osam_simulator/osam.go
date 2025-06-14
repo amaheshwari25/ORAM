@@ -9,8 +9,9 @@ import (
 // see common.go for other type defs
 
 type OSAM struct {
-	counter int
-	oram    *PathORAM
+	counter   int
+	oram      *PathORAM
+	printOSAM bool
 	// stash   []interface{}
 }
 
@@ -25,10 +26,11 @@ func (qe QueueElem) String() string {
 
 ////////////////////////////////////////
 
-func CreateOSAM(oram *PathORAM) *OSAM {
+func CreateOSAM(oram *PathORAM, print bool) *OSAM {
 	o := &OSAM{}
 	o.counter = 0
 	o.oram = oram
+	o.printOSAM = print
 	// o.stash = make([]Block, stashSize)
 	return o
 }
@@ -37,13 +39,15 @@ func (osam *OSAM) Alloc(msg string) addr {
 	leaf := rand.Intn(osam.oram.nl)
 	a := addr{osam.counter, leaf}
 	osam.counter++
-	fmt.Printf("[OSAM] Alloc: %v for %v \n", a, msg)
+	if osam.printOSAM {
+		fmt.Printf("[OSAM] Alloc: %v for %v \n", a, msg)
+	}
 	return a
 }
 
 func (osam *OSAM) Read(a addr) Block {
 	// 1. Read the value from address
-	v := osam.oram.readAndRM(a, fmt.Sprintf("Read address %v", a))
+	v := osam.oram.readRMAccess(a, fmt.Sprintf("Read address %v", a))
 	// 2. Don't actually need to do Evict in our dummy implementation
 	// Evict
 	return v
@@ -61,7 +65,7 @@ func (osam *OSAM) WriteN(a addr, value *Node) {
 
 func (osam *OSAM) Write(a addr, value interface{}, msg string) {
 	// 1. Simulate read Access by reading a dummy address
-	osam.oram.readAndRM(osam.Alloc(fmt.Sprintf("Write at addr %v", a)), msg)
+	osam.oram.readRMAccess(osam.Alloc(fmt.Sprintf("Write at addr %v (DUMMY)", a)), msg)
 	// 2. Do the Evict (note: in dummy implementation, this directly places value v at addr a)
 	osam.oram.modEvict(a, value)
 }
