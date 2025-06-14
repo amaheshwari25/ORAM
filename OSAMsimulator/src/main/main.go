@@ -8,24 +8,28 @@ import (
 type Block = osam.Block
 
 // ----------- toggle printing -----------
-const prORAM = true  // ORAM calls (oram_sim.go)
-const prOSAM = false // OSAM calls (osam.go)
-const prSP = false   // SmartPointer interface calls (smartpointers.go)
+const printORAM = true // ORAM calls (oram_sim.go)
+const printOSAM = true // OSAM calls (osam.go)
+const printSP = true   // SmartPointer interface calls (smartpointers.go)
 
 func main() {
-	or := osam.CreateORAM(12, prORAM)
-	os := osam.CreateOSAM(or, prOSAM)
-	sp := osam.CreateSP(os, prSP)
+	or := osam.CreateORAM(12, printORAM)
+	os := osam.CreateOSAM(or, printOSAM)
+	sp := osam.CreateSP(os, printSP)
 
 	fmt.Println("\n[main] Create pointer A to Node with data='C'")
 	A := sp.New(Block{Data: "C", IsNone: false})
+
 	fmt.Println("\n[main] Copy pointer A to create pointer B")
 	B := sp.Copy(&A)
+
 	fmt.Println("\n[main] GET on pointer A ")
 	valA := sp.Get(&A).Data
 	fmt.Printf("\n[main] GET on pointer A result = %v \n", valA)
+
 	fmt.Println("\n[main] PUT 'newC' via pointer A")
 	sp.Put(&A, Block{Data: "newC", IsNone: false})
+
 	fmt.Println("\n[main] GET on pointer B")
 	valB := sp.Get(&B).Data
 	fmt.Printf("\n[main] GET on pointer B result = %v \n", valB)

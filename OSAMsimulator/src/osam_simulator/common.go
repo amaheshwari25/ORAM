@@ -36,7 +36,3 @@ type Node struct {
 	content Block // invariant: if !isRoot, then content.isNone == true
 	headP   addr  // invariant: if isRoot, then headP == NIL == {ctr:-1, leaf:-1}
 }
-
-// func (nd Node) String() string {
-// 	return fmt.Sprintf("Node(%v)", nd)
-// }

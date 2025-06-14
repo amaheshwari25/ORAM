@@ -9,10 +9,15 @@ import (
 // see common.go for other type defs
 
 type OSAM struct {
-	counter   int
-	oram      *PathORAM
-	printOSAM bool
-	// stash   []interface{}
+	counter int
+	oram    *PathORAM
+	print   bool
+}
+
+func (osam *OSAM) log(str string) {
+	if osam.print {
+		fmt.Println("[OSAM] " + str)
+	}
 }
 
 type QueueElem struct {
@@ -30,8 +35,7 @@ func CreateOSAM(oram *PathORAM, print bool) *OSAM {
 	o := &OSAM{}
 	o.counter = 0
 	o.oram = oram
-	o.printOSAM = print
-	// o.stash = make([]Block, stashSize)
+	o.print = print
 	return o
 }
 
@@ -39,9 +43,7 @@ func (osam *OSAM) Alloc(msg string) addr {
 	leaf := rand.Intn(osam.oram.nl)
 	a := addr{osam.counter, leaf}
 	osam.counter++
-	if osam.printOSAM {
-		fmt.Printf("[OSAM] Alloc: %v for %v \n", a, msg)
-	}
+	osam.log(fmt.Sprintf("[OSAM] Alloc: %v for %v \n", a, msg))
 	return a
 }
 
@@ -49,25 +51,24 @@ func (osam *OSAM) Read(a addr) Block {
 	// 1. Read the value from address
 	v := osam.oram.readRMAccess(a, fmt.Sprintf("Read address %v", a))
 	// 2. Don't actually need to do Evict in our dummy implementation
-	// Evict
 	return v
 }
 
-func (osam *OSAM) WriteQE(a addr, value QueueElem) {
+func (osam *OSAM) Write(a addr, value interface{}, msg string) {
+	// 1. Simulate Read Access by reading a dummy address
+	osam.oram.readRMAccess(osam.Alloc(fmt.Sprintf("Write at addr %v (DUMMY)", a)), msg)
+	// 2. Do the Evict (in this dummy implementation, this directly places value at addr a)
+	osam.oram.modEvict(a, value)
+}
+
+func (osam *OSAM) writeQE(a addr, value QueueElem) {
 	msg := fmt.Sprintf("Write: %v @ address %v", value, a)
 	osam.Write(a, value, msg)
 }
 
-func (osam *OSAM) WriteN(a addr, value *Node) {
+func (osam *OSAM) writeN(a addr, value *Node) {
 	msg := fmt.Sprintf("Write: %v @ address %v", *value, a)
 	osam.Write(a, value, msg)
-}
-
-func (osam *OSAM) Write(a addr, value interface{}, msg string) {
-	// 1. Simulate read Access by reading a dummy address
-	osam.oram.readRMAccess(osam.Alloc(fmt.Sprintf("Write at addr %v (DUMMY)", a)), msg)
-	// 2. Do the Evict (note: in dummy implementation, this directly places value v at addr a)
-	osam.oram.modEvict(a, value)
 }
 
 ///////////// QUEUE functionality ///////////////////
@@ -80,7 +81,7 @@ func (osam *OSAM) initQueue() (addr, addr) {
 
 func (osam *OSAM) enqueue(tail, a addr) addr {
 	newTail := osam.Alloc(fmt.Sprintf("enqueue addr %v at tail %v", a, tail))
-	osam.WriteQE(tail, QueueElem{v: a, link: newTail})
+	osam.writeQE(tail, QueueElem{v: a, link: newTail})
 	return newTail
 
 }
