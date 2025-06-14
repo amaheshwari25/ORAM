@@ -12,6 +12,9 @@ type OSAM struct {
 	counter int
 	oram    *PathORAM
 	print   bool
+	reads   map[addr]bool
+	writes  map[addr]bool
+	allocs  map[addr]bool
 }
 
 func (osam *OSAM) log(str string) {
@@ -36,6 +39,9 @@ func CreateOSAM(oram *PathORAM, print bool) *OSAM {
 	o.counter = 0
 	o.oram = oram
 	o.print = print
+	o.reads = make(map[addr]bool)
+	o.writes = make(map[addr]bool)
+	o.allocs = make(map[addr]bool)
 	return o
 }
 
@@ -43,11 +49,15 @@ func (osam *OSAM) Alloc(msg string) addr {
 	leaf := rand.Intn(osam.oram.nl)
 	a := addr{osam.counter, leaf}
 	osam.counter++
-	osam.log(fmt.Sprintf("[OSAM] Alloc: %v for %v \n", a, msg))
+	osam.allocs[a] = true
+	osam.log(fmt.Sprintf("Alloc: %v for %v", a, msg))
 	return a
 }
 
 func (osam *OSAM) Read(a addr) Block {
+	assert(hasAddr(osam.allocs, a), fmt.Sprintf("Address %v has not been alloc'd", a))
+	assert(!hasAddr(osam.reads, a), fmt.Sprintf("Address %v has already been read", a))
+	osam.reads[a] = true
 	// 1. Read the value from address
 	v := osam.oram.readRMAccess(a, fmt.Sprintf("Read address %v", a))
 	// 2. Don't actually need to do Evict in our dummy implementation
@@ -55,6 +65,9 @@ func (osam *OSAM) Read(a addr) Block {
 }
 
 func (osam *OSAM) Write(a addr, value interface{}, msg string) {
+	assert(hasAddr(osam.allocs, a), fmt.Sprintf("Address %v has not been alloc'd", a))
+	assert(!hasAddr(osam.writes, a), fmt.Sprintf("Address %v has already been written to", a))
+	osam.writes[a] = true
 	// 1. Simulate Read Access by reading a dummy address
 	osam.oram.readRMAccess(osam.Alloc(fmt.Sprintf("Write at addr %v (DUMMY)", a)), msg)
 	// 2. Do the Evict (in this dummy implementation, this directly places value at addr a)

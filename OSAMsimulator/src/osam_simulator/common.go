@@ -4,6 +4,17 @@ import (
 	"strconv"
 )
 
+func assert(cond bool, msg string) {
+	if !cond {
+		panic("Assert failed: " + msg)
+	}
+}
+
+func hasAddr(m map[addr]bool, a addr) bool {
+	_, ok := m[a]
+	return ok
+}
+
 // ------------ BLOCK ------------
 // INVARIANT for simulation: only use non-negative integers as values, so -1 = NONE
 // type val = int

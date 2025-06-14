@@ -27,7 +27,7 @@ func CreateORAM(nleaves int, print bool) *PathORAM {
 
 func (oram *PathORAM) log(str string) {
 	if oram.print {
-		fmt.Println("[OSAM] " + str)
+		fmt.Println("[ORAM] " + str)
 	}
 }
 
@@ -36,19 +36,19 @@ func (oram *PathORAM) readRMAccess(a addr, callerMsg string) Block {
 	i := a.leaf
 	id := a.ctr
 	if i >= oram.nl {
-		log.Fatalf("[ORAM] ReadAndRM ACCESS leaf index out of bounds: i=%v, n=%v", i, oram.nl)
+		log.Fatalf("ReadAndRM ACCESS leaf index out of bounds: i=%v, n=%v", i, oram.nl)
 	}
 	if callerMsg != "" {
-		oram.log(fmt.Sprintf("[ORAM] ReadAndRM ACCESS: %v, called from: %v \n", i, callerMsg))
+		oram.log(fmt.Sprintf("ReadAndRM ACCESS: %v, called from: %v", i, callerMsg))
 	} else {
-		oram.log(fmt.Sprintf("[ORAM] ReadAndRM ACCESS: %v \n", i))
+		oram.log(fmt.Sprintf("ReadAndRM ACCESS: %v", i))
 	}
 	if v, ok := (oram.arr[i])[id]; ok {
 		// need to "Remove" from the PathORAM leaf after reading
 		delete(oram.arr[i], id)
 		return v
 	} else {
-		oram.log(fmt.Sprintf("[ORAM] Read yielded None when reading %v \n", i))
+		oram.log(fmt.Sprintf("Read yielded None when reading %v", i))
 		return Block{Data: NONE, IsNone: true}
 	}
 }
@@ -57,6 +57,6 @@ func (oram *PathORAM) readRMAccess(a addr, callerMsg string) Block {
 // But this does not count as a separate "Access" of the ORAM: in real PathORAM implementation,
 // [value] would just be placed on the LCA with the preceding read-Acess path address and [a].
 func (oram *PathORAM) modEvict(a addr, value interface{}) {
-	oram.log(fmt.Sprintf("[ORAM] Evict: storing value %v at %v \n", value, a))
+	oram.log(fmt.Sprintf("Evict: storing value %v at %v", value, a))
 	(oram.arr[a.leaf])[a.ctr] = Block{value, false}
 }
