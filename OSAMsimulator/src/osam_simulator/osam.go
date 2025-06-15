@@ -59,7 +59,7 @@ func (osam *OSAM) Read(a addr) Block {
 	assert(!hasAddr(osam.reads, a), fmt.Sprintf("Address %v has already been read", a))
 	osam.reads[a] = true
 	// 1. Read the value from address
-	v := osam.oram.readRMAccess(a, fmt.Sprintf("Read address %v", a))
+	v := osam.oram.readRmAccess(a, fmt.Sprintf("Read address %v", a))
 	// 2. Don't actually need to do Evict in our dummy implementation
 	return v
 }
@@ -69,7 +69,7 @@ func (osam *OSAM) Write(a addr, value interface{}, msg string) {
 	assert(!hasAddr(osam.writes, a), fmt.Sprintf("Address %v has already been written to", a))
 	osam.writes[a] = true
 	// 1. Simulate Read Access by reading a dummy address
-	osam.oram.readRMAccess(osam.Alloc(fmt.Sprintf("Write at addr %v (DUMMY)", a)), msg)
+	osam.oram.readRmAccess(osam.Alloc(fmt.Sprintf("Write at addr %v (DUMMY)", a)), msg)
 	// 2. Do the Evict (in this dummy implementation, this directly places value at addr a)
 	osam.oram.modEvict(a, value)
 }

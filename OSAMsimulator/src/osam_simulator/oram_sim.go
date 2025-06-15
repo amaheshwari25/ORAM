@@ -32,16 +32,16 @@ func (oram *PathORAM) log(str string) {
 }
 
 // Access leaf (DUMMY)
-func (oram *PathORAM) readRMAccess(a addr, callerMsg string) Block {
+func (oram *PathORAM) readRmAccess(a addr, callerMsg string) Block {
 	i := a.leaf
 	id := a.ctr
 	if i >= oram.nl {
-		log.Fatalf("ReadAndRM ACCESS leaf index out of bounds: i=%v, n=%v", i, oram.nl)
+		log.Fatalf("ReadAndRm ACCESS leaf index out of bounds: i=%v, n=%v", i, oram.nl)
 	}
 	if callerMsg != "" {
-		oram.log(fmt.Sprintf("ReadAndRM ACCESS: %v, called from: %v", i, callerMsg))
+		oram.log(fmt.Sprintf("ReadAndRm ACCESS: %v, called from: %v", i, callerMsg))
 	} else {
-		oram.log(fmt.Sprintf("ReadAndRM ACCESS: %v", i))
+		oram.log(fmt.Sprintf("ReadAndRm ACCESS: %v", i))
 	}
 	if v, ok := (oram.arr[i])[id]; ok {
 		// need to "Remove" from the PathORAM leaf after reading
@@ -57,6 +57,6 @@ func (oram *PathORAM) readRMAccess(a addr, callerMsg string) Block {
 // But this does not count as a separate "Access" of the ORAM: in real PathORAM implementation,
 // [value] would just be placed on the LCA with the preceding read-Acess path address and [a].
 func (oram *PathORAM) modEvict(a addr, value interface{}) {
-	oram.log(fmt.Sprintf("Evict: storing value %v at %v", value, a))
+	oram.log(fmt.Sprintf("Evict=Write: storing value %v at %v", value, a))
 	(oram.arr[a.leaf])[a.ctr] = Block{value, false}
 }

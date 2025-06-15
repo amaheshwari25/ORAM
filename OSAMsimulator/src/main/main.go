@@ -23,16 +23,12 @@ func main() {
 	fmt.Println("\n[main] Copy pointer A to create pointer B")
 	B := sp.Copy(&A)
 
-	fmt.Println("\n[main] GET on pointer A ")
-	valA := sp.Get(&A).Data
-	fmt.Printf("[main] GET on pointer A result = %v \n", valA)
-
 	fmt.Println("\n[main] PUT 'newC' via pointer A")
 	sp.Put(&A, Block{Data: "newC", IsNone: false})
 
 	fmt.Println("\n[main] GET on pointer B")
 	valB := sp.Get(&B).Data
-	fmt.Printf("[main] GET on pointer B result = %v \n", valB)
+	fmt.Printf("[main] RESULT: GET on pointer B = %v \n", valB)
 
 	// OLD: OSAM-level program
 	// a1 := os.Alloc()
