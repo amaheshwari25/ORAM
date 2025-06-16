@@ -82,7 +82,7 @@ func (sp *SmartPointer) retrieve(p *Ptr) *Node {
 //  Get(p: Ptr) -> Block
 //  Put(p: Ptr, c: Block)
 //  IsNull(p: Ptr)
-//  Copy(p1: Ptr)
+//  Copy(p1: Ptr) -> Ptr
 //  New(c: Block) -> Ptr
 //  Delete(p: Ptr)
 

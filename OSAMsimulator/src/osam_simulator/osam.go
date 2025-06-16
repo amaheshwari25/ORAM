@@ -71,7 +71,7 @@ func (osam *OSAM) Write(a addr, value interface{}, msg string) {
 	// 1. Simulate Read Access by reading a dummy address
 	osam.oram.readRmAccess(osam.Alloc(fmt.Sprintf("Write at addr %v (DUMMY)", a)), msg)
 	// 2. Do the Evict (in this dummy implementation, this directly places value at addr a)
-	osam.oram.modEvict(a, value)
+	osam.oram.evictWrite(a, value)
 }
 
 func (osam *OSAM) writeQE(a addr, value QueueElem) {

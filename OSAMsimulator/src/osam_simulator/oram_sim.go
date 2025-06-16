@@ -39,24 +39,25 @@ func (oram *PathORAM) readRmAccess(a addr, callerMsg string) Block {
 		log.Fatalf("ReadAndRm ACCESS leaf index out of bounds: i=%v, n=%v", i, oram.nl)
 	}
 	if callerMsg != "" {
-		oram.log(fmt.Sprintf("ReadAndRm ACCESS: %v, called from: %v", i, callerMsg))
+		oram.log(fmt.Sprintf("ReadAndRm ACCESS: %v, called from: %v", a, callerMsg))
 	} else {
-		oram.log(fmt.Sprintf("ReadAndRm ACCESS: %v", i))
+		oram.log(fmt.Sprintf("ReadAndRm ACCESS: %v", a))
 	}
 	if v, ok := (oram.arr[i])[id]; ok {
 		// need to "Remove" from the PathORAM leaf after reading
 		delete(oram.arr[i], id)
 		return v
 	} else {
-		oram.log(fmt.Sprintf("Read yielded None when reading %v", i))
+		oram.log(fmt.Sprintf("Read yielded None when reading %v", a))
 		return Block{Data: NONE, IsNone: true}
 	}
 }
 
-// NOTE: this is NOT the same functionality as [evict] in OSAM paper: we drop the stash for simulation.
+// NOTE: this is NOT the same functionality as [evict] in OSAM paper: we drop the stash for simulation;
+// and we just directly write [value] into the leaf corresponding to [a].
 // But this does not count as a separate "Access" of the ORAM: in real PathORAM implementation,
 // [value] would just be placed on the LCA with the preceding read-Acess path address and [a].
-func (oram *PathORAM) modEvict(a addr, value interface{}) {
+func (oram *PathORAM) evictWrite(a addr, value interface{}) {
 	oram.log(fmt.Sprintf("Evict=Write: storing value %v at %v", value, a))
 	(oram.arr[a.leaf])[a.ctr] = Block{value, false}
 }
