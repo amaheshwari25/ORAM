@@ -22,16 +22,16 @@ func testBSP() {
 	fmt.Println("\n[main] Create pointer A to Node with data='MYDATA'")
 	A := bsp.New(Block{Data: "MYDATA", IsNone: false})
 
-	fmt.Println("\n[main] Copy pointer A to create pointer B")
+	fmt.Println("\n[main] Copy pointer A to create pointer B, C, D, E, F, G, H")
 	B := bsp.Copy(&A)
 
-	fmt.Println("\n[main] Copy pointer A to create pointer C")
+	// fmt.Println("\n[main] Copy pointer A to create pointer C")
 	C := bsp.Copy(&A)
 
-	fmt.Println("\n[main] Copy pointer A to create pointer D")
+	// fmt.Println("\n[main] Copy pointer A to create pointer D")
 	D := bsp.Copy(&A)
 
-	fmt.Println("\n[main] Copy pointer A to create pointers E, F, G, H")
+	// fmt.Println("\n[main] Copy pointer A to create pointers E, F, G, H")
 	E := bsp.Copy(&A)
 	F := bsp.Copy(&A)
 	G := bsp.Copy(&A)
@@ -41,21 +41,31 @@ func testBSP() {
 
 	fmt.Println("\n[main] GET on pointer A")
 	_ = bsp.Get(&A, true).Data
-	fmt.Println("\n[main] GET on pointer B")
-	_ = bsp.Get(&B, true).Data
+
+	fmt.Println("\n[main] PUT 'MYDATA_B' with pointer B")
+	bsp.Put(&B, Block{Data: "MYDATA_B", IsNone: false}, true)
+
 	fmt.Println("\n[main] GET on pointer C")
-	_ = bsp.Get(&C, true).Data
+	valC := bsp.Get(&C, true).Data
+	fmt.Printf("[main] RESULT: GET on pointer C = %v \n", valC)
+
 	fmt.Println("\n[main] GET on pointer D")
-	_ = bsp.Get(&D, true).Data
-	fmt.Println("\n[main] GET on pointer E")
-	_ = bsp.Get(&E, true).Data
-	fmt.Println("\n[main] GET on pointer F")
-	_ = bsp.Get(&F, true).Data
+	valD := bsp.Get(&D, true).Data
+	fmt.Printf("[main] RESULT: GET on pointer D = %v \n", valD)
+
+	fmt.Println("\n[main] PUT 'MYDATA_E' with pointer E")
+	bsp.Put(&E, Block{Data: "MYDATA_E", IsNone: false}, true)
+
+	fmt.Println("\n[main] PUT 'MYDATA_F' with pointer F")
+	bsp.Put(&F, Block{Data: "MYDATA_F", IsNone: false}, true)
+
 	fmt.Println("\n[main] GET on pointer G")
-	_ = bsp.Get(&G, true).Data
+	valG := bsp.Get(&G, true).Data
+	fmt.Printf("[main] RESULT: GET on pointer G = %v \n", valG)
+
 	fmt.Println("\n[main] GET on pointer H")
-	val := bsp.Get(&H, true).Data
-	fmt.Printf("[main] (IGNORE) RESULT: GET on pointer H = %v \n", val)
+	valH := bsp.Get(&H, true).Data
+	fmt.Printf("[main] RESULT: GET on pointer H = %v \n", valH)
 }
 
 func testSP() {
@@ -96,7 +106,8 @@ func testSP() {
 
 func main() {
 
-	testBSP()
+	// testBSP()
+	testSP()
 
 	// Basic SP program
 	// or := osam.CreateORAM(12, printORAM)
