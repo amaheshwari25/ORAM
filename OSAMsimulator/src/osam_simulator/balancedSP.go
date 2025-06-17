@@ -5,11 +5,17 @@ import (
 	"math"
 )
 
-// implementation of balanced-tree version of Smart Pointer tree implementation
+// Implementation of balanced-tree version of Smart Pointer tree implementation
+// Three main differences from the paper pseudocode that seem necessary:
+// (1) definition of "rightmost" in [descend] function
+// (2) "else if" in [addTail] instead of a second "if"
+// (3) changes to [chase] (not shown/mentioned in paper)
+
 type BSP struct {
-	osam   *OSAM
-	print  bool
-	nodeId int
+	osam      *OSAM
+	print     bool
+	nodeId    int
+	printPath bool
 }
 
 func (bsp *BSP) log(str string, newline bool) {
@@ -21,8 +27,8 @@ func (bsp *BSP) log(str string, newline bool) {
 	}
 }
 
-func CreateBSP(osam *OSAM, print bool) *BSP {
-	return &BSP{osam, print, 0}
+func CreateBSP(osam *OSAM, print bool, printPath bool) *BSP {
+	return &BSP{osam, print, 0, printPath}
 }
 
 func (bsp *BSP) newNode() *BNode {
@@ -47,7 +53,7 @@ func (bsp *BSP) chase(head addr) *BNode {
 	if nd.tailL == tail {
 		nd.tailL = NIL
 	} else if nd.tailP == tail {
-		// NOTE: NEW -- not in paper: doesn't [chase] also need this change? (TBD)
+		// NOTE: NEW: adding this change to [chase] too (not in paper) ?
 		nd.tailP = NIL
 	} else {
 		nd.tailR = NIL
@@ -56,7 +62,7 @@ func (bsp *BSP) chase(head addr) *BNode {
 }
 
 func (bsp *BSP) saveNode(nd *BNode) {
-	a := bsp.osam.Alloc(fmt.Sprintf("saveNode %v", nd))
+	a := bsp.osam.Alloc(fmt.Sprintf("saveNode %v", nd.id))
 	if nd.tailL != NIL {
 		nd.tailL = bsp.osam.enqueue(nd.tailL, a)
 	}
@@ -69,12 +75,12 @@ func (bsp *BSP) saveNode(nd *BNode) {
 	bsp.osam.writeBN(a, nd)
 }
 
-// TBD: check what's correct here?
+// TBD: check what's correct here? against paper pseudocode
 func (bsp *BSP) addTail(nd *BNode) addr {
 	head, tail := bsp.osam.initQueue()
 	if !nd.isRoot && nd.tailP == NIL {
 		nd.tailP = tail
-		// TBD: is this correct?
+		// NOTE: NEW: "else if" instead of "if" in paper
 	} else if nd.tailL == NIL {
 		nd.tailL = tail
 	} else {
@@ -114,7 +120,12 @@ func getBits(n, len int) []int {
 
 func (bsp *BSP) descend(root *BNode) *BNode {
 	assert(root.isRoot, "Node passed to [descend] is not root node")
+	if root.count <= 1 {
+		// SHORT-CIRCUIT: should not be creating / finding a new node in this case
+		return root
+	}
 	pow := int(math.Floor(math.Log2(float64(root.count))))
+
 	// TBD: check what the right formula is?
 	rmost := root.count - (1 << pow) // MY SOLUTION
 	// rmost := int(math.Floor(float64(root.count -(1<<pow) - 1)/(2.0)))
@@ -127,6 +138,9 @@ func (bsp *BSP) descend(root *BNode) *BNode {
 				nextNd = bsp.chase(nd.headL)
 			} else {
 				nextNd = bsp.newNode()
+				if bsp.printPath {
+					fmt.Printf("Created node %v as L child of node %v \n", nextNd.id, nd.id)
+				}
 				nextNd.tailL = nd.tailL
 				nd.tailL = NIL
 				nextNd.headP = bsp.addTail(nd)
@@ -137,6 +151,9 @@ func (bsp *BSP) descend(root *BNode) *BNode {
 				nextNd = bsp.chase(nd.headR)
 			} else {
 				nextNd = bsp.newNode()
+				if bsp.printPath {
+					fmt.Printf("Created node %v as R child of node %v \n", nextNd.id, nd.id)
+				}
 				nextNd.tailR = nd.tailR
 				nd.tailR = NIL
 				nextNd.headP = bsp.addTail(nd)
@@ -155,9 +172,10 @@ func (bsp *BSP) descend(root *BNode) *BNode {
 //  IsNull(p: Ptr)
 //  Copy(p1: Ptr) -> Ptr
 //  New(c: Block) -> Ptr
+//  Delete(p: Ptr)
 
 func (bsp *BSP) Copy(p1 *Ptr) Ptr {
-	bsp.log(fmt.Sprintf("COPY: starting to copy pointer %v", p1.head), true)
+	bsp.log(fmt.Sprintf("COPY: copy pointer %v", p1.head), true)
 	root := bsp.ascend(p1, false)
 	root.count++
 	nd := bsp.descend(root)
@@ -166,17 +184,19 @@ func (bsp *BSP) Copy(p1 *Ptr) Ptr {
 	return p0
 }
 
-func (bsp *BSP) Get(p *Ptr, printPath bool) Block {
+// Same as SP.Get (with different saveNode implementation)
+func (bsp *BSP) Get(p *Ptr) Block {
 	bsp.log(fmt.Sprintf("GET: %v", p.head), true)
-	nd := bsp.ascend(p, printPath)
+	nd := bsp.ascend(p, bsp.printPath)
 	out := nd.content
 	bsp.saveNode(nd)
 	return out
 }
 
-func (bsp *BSP) Put(p *Ptr, c Block, printPath bool) {
+// Same as SP.Put (with different saveNode implementation)
+func (bsp *BSP) Put(p *Ptr, c Block) {
 	bsp.log(fmt.Sprintf("PUT: content '%v' @ %v", c.Data, p.head), true)
-	nd := bsp.ascend(p, printPath)
+	nd := bsp.ascend(p, bsp.printPath)
 	nd.content = c
 	bsp.saveNode(nd)
 }
@@ -185,9 +205,8 @@ func (bsp *BSP) IsNull(p *Ptr) bool {
 	return p.head == NIL
 }
 
-// TBD CHECK: initialization of BNode?
 func (bsp *BSP) New(c Block) Ptr {
-	bsp.log(fmt.Sprintf("NEW: starting to create pointer to content %v", c.Data), true)
+	bsp.log(fmt.Sprintf("NEW: create pointer to content %v", c.Data), true)
 	nd := bsp.newNode()
 	// set root node properties
 	nd.content = c
@@ -196,4 +215,62 @@ func (bsp *BSP) New(c Block) Ptr {
 	p := Ptr{head: bsp.addTail(nd)}
 	bsp.saveNode(nd)
 	return p
+}
+
+func (bsp *BSP) Delete(p *Ptr) {
+	bsp.log(fmt.Sprintf("DELETE: %v", p.head), true)
+	root := bsp.ascend(p, false)
+	nd := bsp.descend(root)
+	root.count -= 1  // NOTE: NEW -- doing this AFTER the descend
+	bsp.saveNode(nd) // NEW
+
+	if nd.isRoot {
+		bsp.chase(p.head) // to destroy the AQ between the root and p
+		if nd.tailL == NIL && nd.tailR == NIL {
+			fmt.Printf("All pointers to Node %v deleted; should delete its content \n", nd.id)
+		} else {
+			bsp.saveNode(nd)
+		}
+		return
+	}
+
+	tailLatest := nd.tailR
+	ndPrime := bsp.chase(p.head) // important: ndPrime *could be the same* as nd
+	if ndPrime.tailR == NIL {
+		ndPrime.tailR = tailLatest
+	} else {
+		ndPrime.tailL = tailLatest
+	}
+	bsp.saveNode(ndPrime)
+	parent := bsp.chase(nd.headP)
+	if parent.tailL == NIL {
+		parent.tailL = nd.tailL
+		parent.headL = NIL // NEW
+	} else {
+		parent.tailR = nd.tailL
+		parent.headR = NIL // NEW
+	}
+	bsp.saveNode(parent)
+
+	// OLD CODE: based on paper pseudodcode
+	// root := bsp.ascend(p, false)
+	// nd := bsp.descend(root)
+	// root.count -= 1
+	// fmt.Println(nd.id)
+	// // NOTE: NEW -- doing this AFTER the descend?
+	// tailLatest := nd.tailR
+	// parent := bsp.chase(nd.headP)
+	// if parent.tailL == NIL {
+	// 	parent.tailL = nd.tailL
+	// } else {
+	// 	parent.tailR = nd.tailL
+	// }
+	// bsp.saveNode(parent)
+	// ndPrime := bsp.chase(p.head)
+	// if ndPrime.tailR == NIL {
+	// 	ndPrime.tailR = tailLatest
+	// } else {
+	// 	ndPrime.tailL = tailLatest
+	// }
+	// bsp.saveNode(ndPrime)
 }
