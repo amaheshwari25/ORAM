@@ -18,7 +18,7 @@ type OSAM struct {
 }
 
 func (osam *OSAM) log(str string) {
-	if osam.print {
+	if osam.print && !suppressPrint {
 		fmt.Println("[OSAM] " + str)
 	}
 }
@@ -75,12 +75,17 @@ func (osam *OSAM) Write(a addr, value interface{}, msg string) {
 }
 
 func (osam *OSAM) writeQE(a addr, value QueueElem) {
-	msg := fmt.Sprintf("Write: %v @ address %v", value, a)
+	msg := fmt.Sprintf("Write(QE): %v @ address %v", value, a)
 	osam.Write(a, value, msg)
 }
 
 func (osam *OSAM) writeN(a addr, value *Node) {
-	msg := fmt.Sprintf("Write: %v @ address %v", *value, a)
+	msg := fmt.Sprintf("Write(N): %v @ address %v", *value, a)
+	osam.Write(a, value, msg)
+}
+
+func (osam *OSAM) writeBN(a addr, value *BNode) {
+	msg := fmt.Sprintf("Write(BN): %v @ address %v", *value, a)
 	osam.Write(a, value, msg)
 }
 

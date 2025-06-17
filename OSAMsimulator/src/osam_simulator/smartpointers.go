@@ -3,25 +3,28 @@ package osam_simulator
 import "fmt"
 
 type SmartPointer struct {
-	osam  *OSAM
-	print bool
+	osam   *OSAM
+	print  bool
+	nodeId int
 }
 
 func (sp *SmartPointer) log(str string, newline bool) {
-	if newline {
+	if newline && !suppressPrint {
 		fmt.Println()
 	}
-	if sp.print {
+	if sp.print && !suppressPrint {
 		fmt.Println("[SP] " + str)
 	}
 }
 
 func CreateSP(osam *OSAM, print bool) *SmartPointer {
-	return &SmartPointer{osam, print}
+	return &SmartPointer{osam, print, 0}
 }
 
-type Ptr struct {
-	head addr
+// defaults to all NIL values & intermediate node parameters otherwise
+func (sp *SmartPointer) newNode() *Node {
+	sp.nodeId++
+	return &Node{id: sp.nodeId, tailL: NIL, tailR: NIL, headP: NIL, isRoot: false, content: Block{Data: NONE, IsNone: true}}
 }
 
 // ------------ SmartPointer helper functions ------------ //
@@ -66,15 +69,22 @@ func (sp *SmartPointer) addTail(nd *Node) addr {
 }
 
 // Helper function that is the main body of Get and Put
-func (sp *SmartPointer) retrieve(p *Ptr) *Node {
+func (sp *SmartPointer) retrieve(p *Ptr, printPath bool) *Node {
 	nd := sp.chase(p.head)
 	p.head = sp.addTail(nd)
 	for !nd.isRoot {
+		if printPath {
+			fmt.Printf("Fetched SP-node: %v \n", nd.id)
+		}
 		parent := sp.chase(nd.headP)
 		nd.headP = sp.addTail(parent)
 		sp.saveNode(nd)
 		nd = parent
 	}
+	if printPath {
+		fmt.Printf("Fetched SP-node: %v \n", nd.id)
+	}
+	assert(nd.isRoot, "Node returned from [retrieve] is not root node")
 	return nd
 }
 
@@ -86,18 +96,18 @@ func (sp *SmartPointer) retrieve(p *Ptr) *Node {
 //  New(c: Block) -> Ptr
 //  Delete(p: Ptr)
 
-func (sp *SmartPointer) Get(p *Ptr) Block {
+func (sp *SmartPointer) Get(p *Ptr, printPath bool) Block {
 	sp.log(fmt.Sprintf("GET: %v", p.head), true)
-	nd := sp.retrieve(p)
+	nd := sp.retrieve(p, printPath)
 	// invariant after [retrieve]: nd.isRoot should be true
 	out := nd.content
 	sp.saveNode(nd)
 	return out
 }
 
-func (sp *SmartPointer) Put(p *Ptr, c Block) {
+func (sp *SmartPointer) Put(p *Ptr, c Block, printPath bool) {
 	sp.log(fmt.Sprintf("PUT: content '%v' @ %v", c.Data, p.head), true)
-	nd := sp.retrieve(p)
+	nd := sp.retrieve(p, printPath)
 	nd.content = c
 	sp.saveNode(nd)
 }
@@ -110,8 +120,10 @@ func (sp *SmartPointer) Copy(p1 *Ptr) Ptr {
 	sp.log(fmt.Sprintf("COPY: starting to copy pointer %v", p1.head), true)
 	nd := sp.chase(p1.head)
 	if nd.tailL != NIL || nd.tailR != NIL {
-		ndNew := &Node{headP: sp.addTail(nd), isRoot: false, content: Block{Data: NONE, IsNone: true}}
-		sp.saveNode(ndNew)
+		ndNew := sp.newNode()
+		ndNew.headP = sp.addTail(nd)
+		// NOTE below: paper says to do sp.saveNode(ndNew), but I think this is a typo, and should be saveNode(nd)
+		sp.saveNode(nd)
 		nd = ndNew
 	}
 	p0 := Ptr{head: sp.addTail(nd)}
@@ -123,7 +135,9 @@ func (sp *SmartPointer) Copy(p1 *Ptr) Ptr {
 
 func (sp *SmartPointer) New(c Block) Ptr {
 	sp.log(fmt.Sprintf("NEW: starting to create pointer to content %v", c.Data), true)
-	nd := &Node{tailL: NIL, tailR: NIL, content: c, isRoot: true, headP: NIL}
+	nd := sp.newNode()
+	nd.isRoot = true
+	nd.content = c
 	p := Ptr{head: sp.addTail(nd)}
 	sp.saveNode(nd)
 	// sp.log(fmt.Sprintf("NEW: finished creating pointer %v to content %v", p.head, c.Data), false)

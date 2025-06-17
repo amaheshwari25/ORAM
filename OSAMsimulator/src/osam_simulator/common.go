@@ -15,6 +15,17 @@ func hasAddr(m map[addr]bool, a addr) bool {
 	return ok
 }
 
+// for suppressing / un-supressing all print output
+var suppressPrint = false
+
+func Suppress() {
+	suppressPrint = true
+}
+
+func Unsupress() {
+	suppressPrint = false
+}
+
 // ------------ BLOCK ------------
 // INVARIANT for simulation: only use non-negative integers as values, so -1 = NONE
 // type val = int
@@ -39,11 +50,35 @@ func (a addr) String() string {
 	return strconv.Itoa(a.ctr) + "_" + strconv.Itoa(a.leaf)
 }
 
-// ------------ NODE (for SmartPointers) ------------
+// ------------ Ptr (for all SmartPointer implementations) ------------
+type Ptr struct {
+	head addr
+}
+
+// ------------ Node (for base SmartPointers) ------------
 type Node struct {
 	tailL   addr
 	tailR   addr
 	isRoot  bool
 	content Block // invariant: if !isRoot, then content.isNone == true
 	headP   addr  // invariant: if isRoot, then headP == NIL == {ctr:-1, leaf:-1}
+
+	// My new metadata (not in paper)
+	id int
+}
+
+// ------------ BNode (for Balanced SmartPointers) ------------
+type BNode struct {
+	tailL   addr
+	headL   addr
+	tailR   addr
+	headR   addr
+	isRoot  bool
+	content Block // invariant: if !isRoot, then content.isNone == true
+	count   int   // invariant: if !isRoot, then count == NONE == -1
+	headP   addr  // invariant: if isRoot, then headP == NIL == {ctr:-1, leaf:-1}
+	tailP   addr  // invariant: if isRoot, then tailP == NIL == {ctr:-1, leaf:-1}
+
+	// My new metadata (not in paper)
+	id int
 }

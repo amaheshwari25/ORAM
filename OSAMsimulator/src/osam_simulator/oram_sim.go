@@ -26,7 +26,7 @@ func CreateORAM(nleaves int, print bool) *PathORAM {
 }
 
 func (oram *PathORAM) log(str string) {
-	if oram.print {
+	if oram.print && !suppressPrint {
 		fmt.Println("[ORAM] " + str)
 	}
 }
