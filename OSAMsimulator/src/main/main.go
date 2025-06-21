@@ -11,9 +11,9 @@ type Block = osam.Block
 const printORAM = true // ORAM calls (oram_sim.go)
 const printOSAM = true // OSAM calls (osam.go)
 const printSP = true   // SmartPointer interface calls (smartpointers.go)
+const printPath = true
 
 func testBSPBaseCase() {
-	const printPath = true
 	or := osam.CreateORAM(50, printORAM)
 	os := osam.CreateOSAM(or, printOSAM)
 	bsp := osam.CreateBSP(os, printSP, printPath)
@@ -26,13 +26,57 @@ func testBSPBaseCase() {
 	fmt.Println("\n[main] Copy pointer A to create pointer B")
 	B := bsp.Copy(&A)
 
+	fmt.Println("\n[main] Copy pointer B to create pointer C")
+	C := bsp.Copy(&B)
+
+	fmt.Println("\n[main] Copy pointer A to create pointer D")
+	D := bsp.Copy(&A)
+
+	fmt.Println("\n[main] GET A")
+	_ = bsp.Get(&A)
+
+	fmt.Println("\n[main] GET B")
+	_ = bsp.Get(&B)
+
+	fmt.Println("\n[main] GET C")
+	_ = bsp.Get(&C)
+
+	fmt.Println("\n[main] GET D")
+	_ = bsp.Get(&D)
+
+	fmt.Println("\n[main] DELETE C")
+	bsp.Delete(&C)
+
+	fmt.Println("\n[main] GET A")
+	_ = bsp.Get(&A)
+
+	fmt.Println("\n[main] GET B")
+	_ = bsp.Get(&B)
+
+	fmt.Println("\n[main] GET D")
+	_ = bsp.Get(&D)
+
+	fmt.Println("\n[main] DELETE B")
 	bsp.Delete(&B)
+
+	fmt.Println("\n[main] GET A")
+	_ = bsp.Get(&A)
+
+	fmt.Println("\n[main] GET D")
+	_ = bsp.Get(&D)
+
+	fmt.Println("\n[main] DELETE D")
+	bsp.Delete(&D)
+
+	fmt.Println("\n[main] GET A")
+	_ = bsp.Get(&A)
+
+	fmt.Println("\n[main] DELETE A")
 	bsp.Delete(&A)
 
 }
 
 func testBSP() {
-	const printPath = true
 	or := osam.CreateORAM(50, printORAM)
 	os := osam.CreateOSAM(or, printOSAM)
 	bsp := osam.CreateBSP(os, printSP, printPath)
@@ -123,7 +167,7 @@ func testBSP() {
 func testBasicSP() {
 	or := osam.CreateORAM(12, printORAM)
 	os := osam.CreateOSAM(or, printOSAM)
-	sp := osam.CreateSP(os, printSP)
+	sp := osam.CreateSP(os, printSP, printPath)
 
 	fmt.Println("\n[main] Create pointer A to Node with data='DATA'")
 	A := sp.New(Block{Data: "DATA", IsNone: false})
@@ -132,10 +176,10 @@ func testBasicSP() {
 	B := sp.Copy(&A)
 
 	fmt.Println("\n[main] PUT 'NEW_DATA' via pointer A")
-	sp.Put(&A, Block{Data: "NEW_DATA", IsNone: false}, false)
+	sp.Put(&A, Block{Data: "NEW_DATA", IsNone: false})
 
 	fmt.Println("\n[main] GET on pointer B")
-	valB := sp.Get(&B, false).Data
+	valB := sp.Get(&B).Data
 	fmt.Printf("[main] RESULT: GET on pointer B = %v \n", valB)
 }
 
@@ -143,7 +187,7 @@ func testSP() {
 	// Efficient (balanced) SP program
 	or := osam.CreateORAM(50, printORAM)
 	os := osam.CreateOSAM(or, printOSAM)
-	sp := osam.CreateSP(os, printSP)
+	sp := osam.CreateSP(os, printSP, printPath)
 
 	osam.Suppress()
 
@@ -162,23 +206,26 @@ func testSP() {
 	fmt.Println("\n[main] Copy pointer A to create pointer E")
 	E := sp.Copy(&A)
 
+	fmt.Println("\n[main] Delete pointer C")
+	sp.Delete(&C)
+
 	// osam.Unsupress()
 	fmt.Println("\n[main] GET on pointer A")
-	_ = sp.Get(&A, true).Data
+	_ = sp.Get(&A).Data
 	fmt.Println("\n[main] GET on pointer B")
-	_ = sp.Get(&B, true).Data
-	fmt.Println("\n[main] GET on pointer C")
-	_ = sp.Get(&C, true).Data
+	_ = sp.Get(&B).Data
+	// fmt.Println("\n[main] GET on pointer C")
+	// _ = sp.Get(&C).Data
 	fmt.Println("\n[main] GET on pointer D")
-	_ = sp.Get(&D, true).Data
+	_ = sp.Get(&D).Data
 	fmt.Println("\n[main] GET on pointer E")
-	_ = sp.Get(&E, true).Data
+	_ = sp.Get(&E).Data
 }
 
 func main() {
 	// testBSPBaseCase()
-	testBSP()
-	// testSP()
+	// testBSP()
+	testSP()
 	// testBasicSP()
 
 	// OLD: OSAM-level program
