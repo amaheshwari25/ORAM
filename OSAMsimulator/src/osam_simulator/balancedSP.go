@@ -53,8 +53,7 @@ func (bsp *BSP) chase(head addr) *BNode {
 	if nd.tailL == tail {
 		nd.tailL = NIL
 	} else if nd.tailP == tail {
-		// NOTE: NEW: adding this change to [chase] too (not in paper) ?
-		nd.tailP = NIL
+		nd.tailP = NIL // NEW: adding this change to [chase] too (not in paper)?
 	} else {
 		nd.tailR = NIL
 	}
@@ -120,8 +119,7 @@ func getBits(n, len int) []int {
 
 func (bsp *BSP) descend(root *BNode) *BNode {
 	assert(root.isRoot, "Node passed to [descend] is not root node")
-	if root.count <= 1 {
-		// SHORT-CIRCUIT: should not be creating / finding a new node in this case
+	if root.count <= 1 { // short-circuit: should not create / find new node; stay at root
 		return root
 	}
 	pow := int(math.Floor(math.Log2(float64(root.count))))
