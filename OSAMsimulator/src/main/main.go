@@ -13,6 +13,7 @@ const printOSAM = true // OSAM calls (osam.go)
 const printSP = true   // SmartPointer interface calls (smartpointers.go)
 const printPath = true
 
+// ------ OSAM: Smart Pointer frameworks ------
 func testBSPBaseCase() {
 	or := osam.CreateORAM(50, printORAM)
 	os := osam.CreateOSAM(or, printOSAM)
@@ -222,10 +223,41 @@ func testSP() {
 	_ = sp.Get(&E).Data
 }
 
+// ----------------------------------------------
+// ----- OSAM: Emulated Graph construction ------
+const printGr = true
+
+func testGraph() {
+	// NOTE: needs to include self-vertices
+	// us := []int{1, 2, 3, 4, 5, 6, 7}
+	// vs := []int{1, 1, 1, 1, 1, 1, 1}
+	// ws := []int{osam.NONE, 13, 13, 13, 13, 13, 13}
+	us := []int{1, 1, 1, 1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 6, 6}
+	vs := []int{1, 2, 3, 4, 6, 2, 3, 3, 4, 3, 5, 5, 3, 6, 4}
+	ws := []int{osam.NONE, 13, 13, 13, 13, osam.NONE, 13, osam.NONE, osam.NONE, 13, 13, osam.NONE, 13, osam.NONE, 13}
+
+	inp := osam.CreateInputGraph(printGr, us, vs, ws)
+	og := inp.CreateOSAMGraph()
+
+	for i := 0; i < len(og.Vtcs); i++ {
+		vtx := og.Vtcs[i]
+		fmt.Printf("Vtx @ index %v: %v @ address %v \n", i, og.FakeRAM[vtx], vtx)
+		for vtx != osam.NONE {
+			vtx = og.FakeRAM[vtx].UP
+			fmt.Printf("%v @ address %v \n", og.FakeRAM[vtx], vtx)
+		}
+	}
+
+}
+
+// ----------------------------------------------
+
 func main() {
+	testGraph()
+
 	// testBSPBaseCase()
 	// testBSP()
-	testSP()
+	// testSP()
 	// testBasicSP()
 
 	// OLD: OSAM-level program
